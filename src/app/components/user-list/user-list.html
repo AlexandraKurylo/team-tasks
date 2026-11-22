@@ -1,0 +1,25 @@
+<input [(ngModel)]="search" placeholder="Search users" />
+<p>Searching for: {{ search }}</p>
+
+<button (click)="toggleEmail()">
+    {{ showEmail ? 'Hide emails' : 'Show emails' }}
+</button>
+
+<ul>
+    @for (user of users; track user.id) {
+    <li [class.active]="user.isActive">
+        {{ user.name }}
+        @if (showEmail) {
+        <span> — {{ user.email }}</span>
+        }
+    </li>
+    } @empty {
+    <li>No users found</li>
+    }
+</ul>
+
+<input
+    #newName
+    placeholder="New user name"
+    (keyup.enter)="addUser(newName.value); newName.value = ''" />
+<button (click)="addUser(newName.value); newName.value = ''">Add</button>
