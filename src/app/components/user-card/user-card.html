@@ -1,0 +1,12 @@
+<div class="card" [class.active]="user().isActive">
+    <span class="name">{{ user().name }}</span>
+    @if (showEmail()) {
+    <span class="email">{{ user().email }}</span>
+    }
+    <div class="actions">
+        <button (click)="toggleActive.emit(user().id)">
+            {{ user().isActive ? 'Deactivate' : 'Activate' }}
+        </button>
+        <button (click)="remove.emit(user().id)">Remove</button>
+    </div>
+</div>

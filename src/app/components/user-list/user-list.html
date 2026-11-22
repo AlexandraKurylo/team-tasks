@@ -1,22 +1,21 @@
-<input [(ngModel)]="search" placeholder="Search users" />
+<app-search-box [(query)]="search" />
 <p>Searching for: {{ search }}</p>
 
 <button (click)="toggleEmail()">
     {{ showEmail ? 'Hide emails' : 'Show emails' }}
 </button>
 
-<ul>
+<div class="list">
     @for (user of users; track user.id) {
-    <li [class.active]="user.isActive">
-        {{ user.name }}
-        @if (showEmail) {
-        <span> — {{ user.email }}</span>
-        }
-    </li>
+    <app-user-card
+        [user]="user"
+        [showEmail]="showEmail"
+        (remove)="removeUser($event)"
+        (toggleActive)="toggleUser($event)" />
     } @empty {
-    <li>No users found</li>
+    <p>No users found</p>
     }
-</ul>
+</div>
 
 <input
     #newName

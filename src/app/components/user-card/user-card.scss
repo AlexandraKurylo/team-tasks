@@ -1,0 +1,29 @@
+:host {
+    display: block;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.name {
+    font-weight: 500;
+}
+
+.active .name {
+    color: green;
+}
+
+.email {
+    color: #6b7280;
+}
+
+.actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+}
