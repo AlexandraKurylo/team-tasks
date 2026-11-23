@@ -1,11 +1,15 @@
 <app-search-box [(query)]="search" />
-<p>Searching for: {{ search }}</p>
+
+@let filteredUsers = users | filterUsers: search;
+<p>Found: {{ filteredUsers.length }} of {{ users.length }}</p>
+
 <button (click)="toggleEmail()">
     {{ showEmail ? 'Hide emails' : 'Show emails' }}
 </button>
 <p *appUnless="showEmail">Emails are hidden</p>
+
 <div class="list">
-    @for (user of users; track user.id) {
+    @for (user of filteredUsers; track user.id) {
     <app-user-card
         [user]="user"
         [showEmail]="showEmail"
@@ -16,6 +20,7 @@
     <p>No users found</p>
     }
 </div>
+
 <input
     #newName
     appAutofocus

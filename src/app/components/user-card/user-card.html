@@ -1,9 +1,22 @@
 <div class="card"
     [class]="{ active: user().isActive, inactive: !user().isActive }">
-    <span class="name">{{ user().name }}</span>
-    @if (showEmail()) {
-    <span class="email">{{ user().email }}</span>
-    }
+    <div class="avatar">{{ user().name | initials }}</div>
+
+    <div class="info">
+        <span class="name">{{ user().name }}</span>
+        <span class="meta">
+            {{ user().role | titlecase }} · joined {{ user().joinedAt | date:
+            'dd.MM.yyyy' }}
+        </span>
+        @if (showEmail()) {
+        <span class="email">{{ user().email | truncate: 18 }}</span>
+        }
+    </div>
+
+    <span class="workload" [class.overloaded]="user().workload > 1">
+        {{ user().workload | percent }}
+    </span>
+
     <div class="actions">
         <button (click)="toggleActive.emit(user().id)">
             {{ user().isActive ? 'Deactivate' : 'Activate' }}
