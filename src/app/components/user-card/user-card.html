@@ -1,4 +1,5 @@
-<div class="card" [class.active]="user().isActive">
+<div class="card"
+    [class]="{ active: user().isActive, inactive: !user().isActive }">
     <span class="name">{{ user().name }}</span>
     @if (showEmail()) {
     <span class="email">{{ user().email }}</span>

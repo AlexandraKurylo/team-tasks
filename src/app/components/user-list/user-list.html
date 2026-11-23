@@ -1,24 +1,24 @@
 <app-search-box [(query)]="search" />
 <p>Searching for: {{ search }}</p>
-
 <button (click)="toggleEmail()">
     {{ showEmail ? 'Hide emails' : 'Show emails' }}
 </button>
-
+<p *appUnless="showEmail">Emails are hidden</p>
 <div class="list">
     @for (user of users; track user.id) {
     <app-user-card
         [user]="user"
         [showEmail]="showEmail"
+        [appHighlight]="user.isActive ? '#d9f7d6' : '#eeeeee'"
         (remove)="removeUser($event)"
         (toggleActive)="toggleUser($event)" />
     } @empty {
     <p>No users found</p>
     }
 </div>
-
 <input
     #newName
+    appAutofocus
     placeholder="New user name"
     (keyup.enter)="addUser(newName.value); newName.value = ''" />
 <button (click)="addUser(newName.value); newName.value = ''">Add</button>

@@ -2,10 +2,11 @@ import { AfterViewInit, Component, ElementRef, viewChild } from '@angular/core';
 import { User } from '../../models/user';
 import { UserCard } from '../user-card';
 import { SearchBox } from '../search-box';
+import { Highlight, Autofocus, Unless } from '../../directives';
 
 @Component({
   selector: 'app-user-list',
-  imports: [UserCard, SearchBox],
+  imports: [UserCard, SearchBox, Highlight, Unless, Autofocus],
   templateUrl: './user-list.html',
   styleUrl: './user-list.scss',
 })
