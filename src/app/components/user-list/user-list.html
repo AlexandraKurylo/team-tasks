@@ -1,7 +1,7 @@
 <app-search-box [(query)]="search" />
 
-@let filteredUsers = users | filterUsers: search;
-<p>Found: {{ filteredUsers.length }} of {{ users.length }}</p>
+@let filteredUsers = users() | filterUsers: search;
+<p>Found: {{ filteredUsers.length }} of {{ users().length }}</p>
 
 <button (click)="toggleEmail()">
     {{ showEmail ? 'Hide emails' : 'Show emails' }}
