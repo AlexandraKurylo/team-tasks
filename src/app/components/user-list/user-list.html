@@ -1,5 +1,11 @@
 <app-search-box [(query)]="search" />
 
+@if (isLoading()) {
+<p class="status">Loading users...</p>
+} @else if (error()) {
+<p class="status error">{{ error() }}</p>
+<button (click)="reload()">Retry</button>
+} @else {
 @let filteredUsers = users() | filterUsers: search;
 <p>Found: {{ filteredUsers.length }} of {{ users().length }}</p>
 
@@ -20,6 +26,7 @@
     <p>No users found</p>
     }
 </div>
+}
 
 <input
     #newName

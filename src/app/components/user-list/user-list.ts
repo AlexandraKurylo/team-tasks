@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { UserCard } from '../user-card';
 import { SearchBox } from '../search-box';
 import { Autofocus, Highlight, Unless } from '../../directives';
@@ -11,12 +11,22 @@ import { UserService } from '../../services/user-service';
   templateUrl: './user-list.html',
   styleUrl: './user-list.scss',
 })
-export class UserList {
+export class UserList implements OnInit {
   private userService = inject(UserService);
 
   users = this.userService.users;
+  isLoading = this.userService.isLoading;
+  error = this.userService.error;
   showEmail = false;
   search = '';
+
+  ngOnInit() {
+    this.userService.load();
+  }
+
+  reload() {
+    this.userService.load();
+  }
 
   toggleEmail() {
     this.showEmail = !this.showEmail;

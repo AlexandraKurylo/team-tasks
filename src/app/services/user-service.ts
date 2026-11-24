@@ -1,86 +1,94 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
+import { Observable, map } from 'rxjs';
+import { ApiUser } from '../models/api-user';
 import { User } from '../models/user';
 import { API_URL } from '../tokens';
+
+const ROLES = ['frontend developer', 'backend developer', 'tester', 'project manager', 'designer'];
+
+function toUser(apiUser: ApiUser): User {
+  const id = apiUser.id;
+  return {
+    id,
+    name: apiUser.name,
+    email: apiUser.email.toLowerCase(),
+    role: ROLES[id % ROLES.length],
+    joinedAt: new Date(2020 + (id % 5), id % 12, id * 2).toISOString(),
+    workload: (((id * 37) % 70) + 50) / 100,
+    isActive: id % 3 !== 0,
+  };
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
+  private http = inject(HttpClient);
   private apiUrl = inject(API_URL);
 
-  private readonly _users = signal<User[]>([
-    {
-      id: 1,
-      name: 'Leanne Graham',
-      email: 'leanne.graham@mail.com',
-      role: 'frontend developer',
-      joinedAt: '2023-03-15',
-      workload: 0.85,
-      isActive: true,
-    },
-    {
-      id: 2,
-      name: 'Ervin Howell',
-      email: 'ervin.howell@mail.com',
-      role: 'backend developer',
-      joinedAt: '2022-11-02',
-      workload: 0.4,
-      isActive: false,
-    },
-    {
-      id: 3,
-      name: 'Clementine Bauch',
-      email: 'clementine.bauch@mail.com',
-      role: 'tester',
-      joinedAt: '2024-06-20',
-      workload: 1.1,
-      isActive: true,
-    },
-    {
-      id: 4,
-      name: 'Patricia Lebsack',
-      email: 'patricia.lebsack@mail.com',
-      role: 'project manager',
-      joinedAt: '2021-09-01',
-      workload: 0.6,
-      isActive: false,
-    },
-    {
-      id: 5,
-      name: 'Chelsey Dietrich',
-      email: 'chelsey.dietrich@mail.com',
-      role: 'designer',
-      joinedAt: '2025-01-10',
-      workload: 0.95,
-      isActive: true,
-    },
-  ]);
+  private readonly _users = signal<User[]>([]);
+  private readonly _isLoading = signal(false);
+  private readonly _error = signal<string | null>(null);
 
   readonly users = this._users.asReadonly();
+  readonly isLoading = this._isLoading.asReadonly();
+  readonly error = this._error.asReadonly();
 
-  constructor() {
-    console.log('UserService created', this.apiUrl);
+  getUsers(): Observable<User[]> {
+    return this.http
+      .get<ApiUser[]>(`${this.apiUrl}/users`)
+      .pipe(map(apiUsers => apiUsers.map(toUser)));
+  }
+
+  load() {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    this.getUsers().subscribe({
+      next: users => {
+        this._users.set(users);
+        this._isLoading.set(false);
+      },
+      error: () => {
+        this._error.set('Failed to load users. Please try again.');
+        this._isLoading.set(false);
+      },
+    });
   }
 
   add(name: string) {
     const trimmed = name.trim();
     if (!trimmed) return;
 
-    const newUser: User = {
-      id: Date.now(),
+    const body = {
       name: trimmed,
       email: `${trimmed.toLowerCase().replace(/\s+/g, '.')}@mail.com`,
-      role: 'new member',
-      joinedAt: new Date().toISOString(),
-      workload: 0,
-      isActive: true,
     };
 
-    this._users.update(list => [...list, newUser]);
+    this.http.post<ApiUser>(`${this.apiUrl}/users`, body).subscribe(created => {
+      console.log('Server response:', created);
+
+      const newUser: User = {
+        id: Date.now(),
+        name: created.name,
+        email: created.email,
+        role: 'new member',
+        joinedAt: new Date().toISOString(),
+        workload: 0,
+        isActive: true,
+      };
+
+      this._users.update(list => [...list, newUser]);
+    });
   }
 
   remove(id: number) {
     this._users.update(list => list.filter(u => u.id !== id));
+
+    this.http.delete(`${this.apiUrl}/users/${id}`).subscribe({
+      error: err => console.error('Failed to delete user on server', err),
+    });
   }
 
   toggleActive(id: number) {
