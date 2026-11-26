@@ -1,5 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { concat, map, of, switchMap, timer } from 'rxjs';
 import { NotificationService } from '../../services/notification-service';
 
 @Component({
@@ -23,14 +24,15 @@ import { NotificationService } from '../../services/notification-service';
   `,
 })
 export class Toast {
-  message = signal<string | null>(null);
-
-  constructor() {
-    inject(NotificationService)
-      .messages$.pipe(takeUntilDestroyed())
-      .subscribe(text => {
-        this.message.set(text);
-        setTimeout(() => this.message.set(null), 3000);
-      });
-  }
+  message = toSignal(
+    inject(NotificationService).messages$.pipe(
+      switchMap(text =>
+        concat(
+          of(text),
+          timer(3000).pipe(map(() => null)),
+        ),
+      ),
+    ),
+    { initialValue: null },
+  );
 }

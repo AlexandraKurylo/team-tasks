@@ -1,4 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged, tap } from 'rxjs';
 import { UserCard } from '../user-card';
 import { SearchBox } from '../search-box';
 import { Autofocus, Highlight, Unless } from '../../directives';
@@ -18,7 +20,16 @@ export class UserList implements OnInit {
   isLoading = this.userService.isLoading;
   error = this.userService.error;
   showEmail = false;
-  search = '';
+  search = signal('');
+
+  debouncedSearch = toSignal(
+    toObservable(this.search).pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      tap(value => console.log('Search applied:', value)),
+    ),
+    { initialValue: '' },
+  );
 
   ngOnInit() {
     this.userService.load();

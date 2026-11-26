@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EMPTY, Observable, Subject, catchError, exhaustMap, finalize, forkJoin, map, retry } from 'rxjs';
+import { ApiTodo } from '../models/api-todo';
 import { ApiUser } from '../models/api-user';
 import { User } from '../models/user';
 import { API_URL } from '../tokens';
@@ -8,15 +10,17 @@ import { NotificationService } from './notification-service';
 
 const ROLES = ['frontend developer', 'backend developer', 'tester', 'project manager', 'designer'];
 
-function toUser(apiUser: ApiUser): User {
+function toUser(apiUser: ApiUser, todos: ApiTodo[]): User {
   const id = apiUser.id;
+  const openTasks = todos.filter(t => t.userId === id && !t.completed).length;
+
   return {
     id,
     name: apiUser.name,
     email: apiUser.email.toLowerCase(),
     role: ROLES[id % ROLES.length],
     joinedAt: new Date(2020 + (id % 5), id % 12, id * 2).toISOString(),
-    workload: (((id * 37) % 70) + 50) / 100,
+    workload: openTasks / 10,
     isActive: id % 3 !== 0,
   };
 }
@@ -32,31 +36,44 @@ export class UserService {
   private readonly _users = signal<User[]>([]);
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
+  private readonly reload$ = new Subject<void>();
 
   readonly users = this._users.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
+  constructor() {
+    this.reload$
+      .pipe(
+        exhaustMap(() => {
+          this._isLoading.set(true);
+          this._error.set(null);
+
+          return this.getUsers().pipe(
+            retry(1),
+            catchError(() => {
+              this._error.set('Failed to load users. Please try again.');
+              return EMPTY;
+            }),
+            finalize(() => this._isLoading.set(false)),
+          );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe(users => this._users.set(users));
+  }
+
   getUsers(): Observable<User[]> {
-    return this.http
-      .get<ApiUser[]>(`${this.apiUrl}/users`)
-      .pipe(map(apiUsers => apiUsers.map(toUser)));
+    return forkJoin({
+      apiUsers: this.http.get<ApiUser[]>(`${this.apiUrl}/users`),
+      todos: this.http.get<ApiTodo[]>(`${this.apiUrl}/todos`),
+    }).pipe(
+      map(({ apiUsers, todos }) => apiUsers.map(apiUser => toUser(apiUser, todos))),
+    );
   }
 
   load() {
-    this._isLoading.set(true);
-    this._error.set(null);
-
-    this.getUsers().subscribe({
-      next: users => {
-        this._users.set(users);
-        this._isLoading.set(false);
-      },
-      error: () => {
-        this._error.set('Failed to load users. Please try again.');
-        this._isLoading.set(false);
-      },
-    });
+    this.reload$.next();
   }
 
   add(name: string) {

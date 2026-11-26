@@ -1,36 +1,39 @@
 <app-search-box [(query)]="search" />
+<button (click)="reload()">Reload</button>
 
 @if (isLoading()) {
-<p class="status">Loading users...</p>
+  <p class="status">Loading users...</p>
 } @else if (error()) {
-<p class="status error">{{ error() }}</p>
-<button (click)="reload()">Retry</button>
+  <p class="status error">{{ error() }}</p>
+  <button (click)="reload()">Retry</button>
 } @else {
-@let filteredUsers = users() | filterUsers: search;
-<p>Found: {{ filteredUsers.length }} of {{ users().length }}</p>
+  @let filteredUsers = users() | filterUsers: debouncedSearch();
+  <p>Found: {{ filteredUsers.length }} of {{ users().length }}</p>
 
-<button (click)="toggleEmail()">
+  <button (click)="toggleEmail()">
     {{ showEmail ? 'Hide emails' : 'Show emails' }}
-</button>
-<p *appUnless="showEmail">Emails are hidden</p>
+  </button>
+  <p *appUnless="showEmail">Emails are hidden</p>
 
-<div class="list">
+  <div class="list">
     @for (user of filteredUsers; track user.id) {
-    <app-user-card
+      <app-user-card
         [user]="user"
         [showEmail]="showEmail"
         [appHighlight]="user.isActive ? '#d9f7d6' : '#eeeeee'"
         (remove)="removeUser($event)"
-        (toggleActive)="toggleUser($event)" />
+        (toggleActive)="toggleUser($event)"
+      />
     } @empty {
-    <p>No users found</p>
+      <p>No users found</p>
     }
-</div>
+  </div>
 }
 
 <input
-    #newName
-    appAutofocus
-    placeholder="New user name"
-    (keyup.enter)="addUser(newName.value); newName.value = ''" />
+  #newName
+  appAutofocus
+  placeholder="New user name"
+  (keyup.enter)="addUser(newName.value); newName.value = ''"
+/>
 <button (click)="addUser(newName.value); newName.value = ''">Add</button>
