@@ -4,6 +4,7 @@ import { Observable, map } from 'rxjs';
 import { ApiUser } from '../models/api-user';
 import { User } from '../models/user';
 import { API_URL } from '../tokens';
+import { NotificationService } from './notification-service';
 
 const ROLES = ['frontend developer', 'backend developer', 'tester', 'project manager', 'designer'];
 
@@ -26,6 +27,7 @@ function toUser(apiUser: ApiUser): User {
 export class UserService {
   private http = inject(HttpClient);
   private apiUrl = inject(API_URL);
+  private notifications = inject(NotificationService);
 
   private readonly _users = signal<User[]>([]);
   private readonly _isLoading = signal(false);
@@ -67,8 +69,6 @@ export class UserService {
     };
 
     this.http.post<ApiUser>(`${this.apiUrl}/users`, body).subscribe(created => {
-      console.log('Server response:', created);
-
       const newUser: User = {
         id: Date.now(),
         name: created.name,
@@ -80,11 +80,14 @@ export class UserService {
       };
 
       this._users.update(list => [...list, newUser]);
+      this.notifications.notify(`${newUser.name} added`);
     });
   }
 
   remove(id: number) {
+    const user = this._users().find(u => u.id === id);
     this._users.update(list => list.filter(u => u.id !== id));
+    this.notifications.notify(`${user?.name ?? 'User'} removed`);
 
     this.http.delete(`${this.apiUrl}/users/${id}`).subscribe({
       error: err => console.error('Failed to delete user on server', err),
@@ -95,5 +98,10 @@ export class UserService {
     this._users.update(list =>
       list.map(u => (u.id === id ? { ...u, isActive: !u.isActive } : u))
     );
+
+    const user = this._users().find(u => u.id === id);
+    if (user) {
+      this.notifications.notify(`${user.name} ${user.isActive ? 'activated' : 'deactivated'}`);
+    }
   }
 }

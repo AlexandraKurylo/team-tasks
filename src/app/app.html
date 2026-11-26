@@ -1,6 +1,17 @@
 <app-panel>
-    <h2 panel-title>Team</h2>
+    <h2 panel-title>
+        Team
+        <span class="badge">{{ notificationsCount() }}</span>
+    </h2>
+
+    <button (click)="showTimer.set(!showTimer())">Toggle timer</button>
+    @if (showTimer()) {
+    <app-session-timer />
+    }
+
     <app-team-stats />
     <app-user-list />
 </app-panel>
+
+<app-toast />
 <router-outlet />
