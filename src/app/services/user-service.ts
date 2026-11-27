@@ -10,6 +10,11 @@ import { NotificationService } from './notification-service';
 
 const ROLES = ['frontend developer', 'backend developer', 'tester', 'project manager', 'designer'];
 
+export interface UserDetails {
+  user: User;
+  todos: ApiTodo[];
+}
+
 function toUser(apiUser: ApiUser, todos: ApiTodo[]): User {
   const id = apiUser.id;
   const openTasks = todos.filter(t => t.userId === id && !t.completed).length;
@@ -69,6 +74,15 @@ export class UserService {
       todos: this.http.get<ApiTodo[]>(`${this.apiUrl}/todos`),
     }).pipe(
       map(({ apiUsers, todos }) => apiUsers.map(apiUser => toUser(apiUser, todos))),
+    );
+  }
+
+  getUserDetails(id: number): Observable<UserDetails> {
+    return forkJoin({
+      apiUser: this.http.get<ApiUser>(`${this.apiUrl}/users/${id}`),
+      todos: this.http.get<ApiTodo[]>(`${this.apiUrl}/todos`, { params: { userId: id } }),
+    }).pipe(
+      map(({ apiUser, todos }) => ({ user: toUser(apiUser, todos), todos })),
     );
   }
 

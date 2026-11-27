@@ -2,10 +2,11 @@ import { Component, OnChanges, OnDestroy, OnInit, SimpleChanges, input, output }
 import { User } from '../../models/user';
 import { DatePipe, PercentPipe, TitleCasePipe } from '@angular/common';
 import { InitialsPipe, TruncatePipe } from '../../pipes';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-user-card',
-  imports: [DatePipe, PercentPipe, TitleCasePipe, InitialsPipe, TruncatePipe],
+  imports: [DatePipe, PercentPipe, TitleCasePipe, InitialsPipe, TruncatePipe, RouterLink],
   templateUrl: './user-card.html',
   styleUrl: './user-card.scss',
 })

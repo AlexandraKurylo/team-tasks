@@ -63,3 +63,12 @@
 .overloaded {
     color: #dc2626;
 }
+
+a.name {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

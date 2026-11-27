@@ -1,17 +1,23 @@
-<app-panel>
-    <h2 panel-title>
-        Team
-        <span class="badge">{{ notificationsCount() }}</span>
-    </h2>
+<header class="header">
+    <a routerLink="/team" class="logo">Team Tasks</a>
+
+    <nav class="nav">
+        <a routerLink="/team" routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }">
+            Team
+        </a>
+    </nav>
+
+    <span class="badge">{{ notificationsCount() }}</span>
 
     <button (click)="showTimer.set(!showTimer())">Toggle timer</button>
     @if (showTimer()) {
     <app-session-timer />
     }
+</header>
 
-    <app-team-stats />
-    <app-user-list />
-</app-panel>
+<main class="main">
+    <router-outlet />
+</main>
 
 <app-toast />
-<router-outlet />
